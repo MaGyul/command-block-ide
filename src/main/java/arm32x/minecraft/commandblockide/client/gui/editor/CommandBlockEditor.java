@@ -109,7 +109,7 @@ public final class CommandBlockEditor extends CommandEditor {
 		trackOutputButton.setTrackingOutput(executor.isTrackingOutput());
 
 		String lastOutput = executor.getLastOutput().getString();
-		if (lastOutput.equals("")) {
+		if (lastOutput.isEmpty()) {
 			lastOutput = Text.translatable("commandBlockIDE.lastOutput.none").getString();
 		}
 		lastOutputField.setText(lastOutput);

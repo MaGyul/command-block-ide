@@ -2,13 +2,15 @@ package arm32x.minecraft.commandblockide.util;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+
+import io.netty.buffer.ByteBuf;
 import net.minecraft.network.PacketByteBuf;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Splits a {@link PacketByteBuf} into several chunks to avoid size limitations.
  */
-public final class PacketSplitter implements Iterable<PacketByteBuf> {
+public final class PacketSplitter implements Iterable<ByteBuf> {
 	public static final int CHUNK_SIZE = 32500;
 	public static final int HEADER_MAGIC = 1397771337 /* SPLI */;
 
@@ -49,26 +51,26 @@ public final class PacketSplitter implements Iterable<PacketByteBuf> {
 	}
 
 	@Override
-	public @NotNull Iterator<PacketByteBuf> iterator() {
+	public @NotNull Iterator<ByteBuf> iterator() {
 		if (source.getInt(source.readerIndex()) != HEADER_MAGIC) {
 			throw new MissingHeaderException();
 		}
 		return new BufferIterator();
 	}
 
-	private class BufferIterator implements Iterator<PacketByteBuf> {
+	private class BufferIterator implements Iterator<ByteBuf> {
 		@Override
 		public boolean hasNext() {
 			return source.readableBytes() > 0;
 		}
 
 		@Override
-		public PacketByteBuf next() {
+		public ByteBuf next() {
 			int length = Math.min(CHUNK_SIZE, source.readableBytes());
 			if (length <= 0) {
 				throw new NoSuchElementException();
 			}
-			return new PacketByteBuf(source.readSlice(length));
+			return source.readSlice(length);
 		}
 	}
 

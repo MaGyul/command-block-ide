@@ -1,7 +1,8 @@
 package arm32x.minecraft.commandblockide.server.command;
 
 import arm32x.minecraft.commandblockide.Packets;
-import arm32x.minecraft.commandblockide.mixinextensions.server.CommandFunctionExtension;
+import arm32x.minecraft.commandblockide.payloads.EditFunctionPayload;
+import arm32x.minecraft.commandblockide.payloads.UpdateFunctionCommandPayload;
 import arm32x.minecraft.commandblockide.server.function.FunctionIO;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.Message;
@@ -10,22 +11,22 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.datafixers.util.Either;
-import java.util.List;
-import java.util.Optional;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.CommandFunctionArgumentType;
-import static net.minecraft.command.argument.CommandFunctionArgumentType.commandFunction;
-import net.minecraft.network.PacketByteBuf;
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
 import net.minecraft.server.command.FunctionCommand;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.function.CommandFunctionManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+
+import java.util.List;
+import java.util.Optional;
+
+import static net.minecraft.command.argument.CommandFunctionArgumentType.commandFunction;
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
 
 public final class EditFunctionCommand {
 	/**
@@ -71,16 +72,10 @@ public final class EditFunctionCommand {
 		}
 		var lines = loadResult.left().orElseThrow(); // Should be present
 
-		PacketByteBuf headerBuf = PacketByteBufs.create();
-		headerBuf.writeIdentifier(function.id());
-		headerBuf.writeVarInt(lines.size());
-		ServerPlayNetworking.send(player, Packets.EDIT_FUNCTION, headerBuf);
+		ServerPlayNetworking.send(player, new EditFunctionPayload(function.id(), lines.size()));
 
 		for (int index = 0; index < lines.size(); index++) {
-			PacketByteBuf lineBuf = PacketByteBufs.create();
-			lineBuf.writeVarInt(index);
-			lineBuf.writeString(lines.get(index)); // TODO: Make sure this doesn’t exceed size limits.
-			ServerPlayNetworking.send(player, Packets.UPDATE_FUNCTION_COMMAND, lineBuf);
+			ServerPlayNetworking.send(player, new UpdateFunctionCommandPayload(index, lines.get(index)));
 		}
 
 		return 1;

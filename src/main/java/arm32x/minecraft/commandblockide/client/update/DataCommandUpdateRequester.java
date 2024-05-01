@@ -86,7 +86,7 @@ public final class DataCommandUpdateRequester {
 			return false;
 		}
 
-		blockEntity.readNbt(tag);
+		blockEntity.readNbt(tag, client.world.getRegistryManager());
 //		blockEntity.setNeedsUpdatePacket(false);
 		if (client.currentScreen instanceof CommandBlockIDEScreen) {
 			((CommandBlockIDEScreen)client.currentScreen).update(position);

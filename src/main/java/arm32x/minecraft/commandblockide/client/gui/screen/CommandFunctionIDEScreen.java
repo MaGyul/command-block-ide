@@ -1,9 +1,10 @@
 package arm32x.minecraft.commandblockide.client.gui.screen;
 
-import arm32x.minecraft.commandblockide.Packets;
 import arm32x.minecraft.commandblockide.client.gui.editor.CommandEditor;
 import arm32x.minecraft.commandblockide.client.gui.editor.CommandFunctionEditor;
+import arm32x.minecraft.commandblockide.payloads.ApplyFunctionPayload;
 import arm32x.minecraft.commandblockide.util.PacketSplitter;
+import io.netty.buffer.ByteBuf;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
@@ -59,8 +60,9 @@ public final class CommandFunctionIDEScreen extends CommandIDEScreen<CommandFunc
 		PacketSplitter.updateChunkCount(buf);
 
 		PacketSplitter splitter = new PacketSplitter(buf);
-		for (PacketByteBuf splitBuf : splitter) {
-			ClientPlayNetworking.send(Packets.APPLY_FUNCTION, splitBuf);
+		for (ByteBuf splitBuf : splitter) {
+			ClientPlayNetworking.send(new ApplyFunctionPayload(splitBuf));
+//			ClientPlayNetworking.send(Packets.APPLY_FUNCTION, splitBuf);
 		}
 
 		super.save();

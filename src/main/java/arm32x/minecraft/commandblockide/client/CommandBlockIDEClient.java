@@ -2,14 +2,16 @@ package arm32x.minecraft.commandblockide.client;
 
 import arm32x.minecraft.commandblockide.Packets;
 import arm32x.minecraft.commandblockide.client.gui.screen.CommandFunctionIDEScreen;
+import arm32x.minecraft.commandblockide.payloads.EditFunctionPayload;
+import arm32x.minecraft.commandblockide.payloads.UpdateFunctionCommandPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.FatalErrorScreen;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -18,19 +20,17 @@ import org.jetbrains.annotations.Nullable;
 public final class CommandBlockIDEClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		ClientPlayNetworking.registerGlobalReceiver(Packets.EDIT_FUNCTION, (client, handler, buf, responseSender) -> {
-			Identifier id = buf.readIdentifier();
-			int lineCount = buf.readVarInt();
-			client.execute(() -> {
-				client.setScreen(new CommandFunctionIDEScreen(id, lineCount));
-			});
+		PayloadTypeRegistry.playS2C().register(Packets.EDIT_FUNCTION, EditFunctionPayload.CODEC);
+		ClientPlayNetworking.registerGlobalReceiver(Packets.EDIT_FUNCTION, (payload, context) -> {
+			MinecraftClient client = context.client();
+			client.execute(() -> client.setScreen(new CommandFunctionIDEScreen(payload.id(), payload.lineCount())));
 		});
-		ClientPlayNetworking.registerGlobalReceiver(Packets.UPDATE_FUNCTION_COMMAND, (client, handler, buf, responseSender) -> {
-			int index = buf.readVarInt();
-			String line = buf.readString();
+		PayloadTypeRegistry.playS2C().register(Packets.UPDATE_FUNCTION_COMMAND, UpdateFunctionCommandPayload.CODEC);
+		ClientPlayNetworking.registerGlobalReceiver(Packets.UPDATE_FUNCTION_COMMAND, (payload, context) -> {
+			MinecraftClient client = context.client();
 			client.execute(() -> {
-				if (client.currentScreen instanceof CommandFunctionIDEScreen) {
-					((CommandFunctionIDEScreen)client.currentScreen).update(index, line);
+				if (client.currentScreen instanceof CommandFunctionIDEScreen ide) {
+					ide.update(payload.index(), payload.line());
 				}
 			});
 		});

@@ -1,6 +1,7 @@
 package arm32x.minecraft.commandblockide;
 
 import arm32x.minecraft.commandblockide.mixinextensions.server.CommandFunctionExtension;
+import arm32x.minecraft.commandblockide.payloads.ApplyFunctionPayload;
 import arm32x.minecraft.commandblockide.server.command.EditFunctionCommand;
 import arm32x.minecraft.commandblockide.server.function.FunctionIO;
 import arm32x.minecraft.commandblockide.util.PacketMerger;
@@ -9,11 +10,13 @@ import java.util.List;
 import java.util.Optional;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.function.CommandFunction;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
@@ -27,12 +30,13 @@ public final class CommandBlockIDE implements ModInitializer {
 		});
 
 		final PacketMerger functionMerger = new PacketMerger();
-		ServerPlayNetworking.registerGlobalReceiver(Packets.APPLY_FUNCTION, (server, player, handler, buf, responseSender) -> {
+		PayloadTypeRegistry.playC2S().register(Packets.APPLY_FUNCTION, ApplyFunctionPayload.CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(Packets.APPLY_FUNCTION, (payload, context) -> {
 			Optional<PacketByteBuf> maybeMerged = Optional.empty();
 			try {
-				maybeMerged = functionMerger.append(buf);
+				maybeMerged = functionMerger.append(payload.toBuf());
 			} catch (PacketMerger.InvalidSplitPacketException e) {
-				e.printStackTrace();
+				LOGGER.error("PacketMerger", e);
 			}
 			if (maybeMerged.isPresent()) {
 				PacketByteBuf merged = maybeMerged.get();
@@ -43,6 +47,8 @@ public final class CommandBlockIDE implements ModInitializer {
 					lines[index] = merged.readString(Integer.MAX_VALUE >> 2);
 				}
 
+				ServerPlayerEntity player = context.player();
+				MinecraftServer server = player.server;
 				server.execute(() -> {
 					Text feedbackMessage = FunctionIO.saveFunction(server, functionId, Arrays.asList(lines));
 					player.sendMessage(feedbackMessage);
