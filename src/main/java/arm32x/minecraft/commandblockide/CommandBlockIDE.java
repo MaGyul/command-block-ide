@@ -25,9 +25,8 @@ import org.apache.logging.log4j.Logger;
 public final class CommandBlockIDE implements ModInitializer {
 	@Override
 	public void onInitialize() {
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-			EditFunctionCommand.register(dispatcher);
-		});
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+				EditFunctionCommand.register(dispatcher));
 
 		final PacketMerger functionMerger = new PacketMerger();
 		PayloadTypeRegistry.playC2S().register(Packets.APPLY_FUNCTION, ApplyFunctionPayload.CODEC);

@@ -1,14 +1,14 @@
 package arm32x.minecraft.commandblockide.client;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.CommandBlock;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+
+import java.util.*;
+import java.util.stream.Stream;
 
 public final class CommandChainTracer {
 	private final ClientWorld world;
@@ -117,7 +117,7 @@ public final class CommandChainTracer {
 				if (results.size() != 1) {
 					throw new NoSuchElementException();
 				}
-				position = results.get(0);
+				position = results.getFirst();
 				visited.add(position);
 				return position;
 			}
