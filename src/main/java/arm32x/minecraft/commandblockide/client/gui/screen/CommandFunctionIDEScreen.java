@@ -62,7 +62,6 @@ public final class CommandFunctionIDEScreen extends CommandIDEScreen<CommandFunc
 		PacketSplitter splitter = new PacketSplitter(buf);
 		for (ByteBuf splitBuf : splitter) {
 			ClientPlayNetworking.send(new ApplyFunctionPayload(splitBuf));
-//			ClientPlayNetworking.send(Packets.APPLY_FUNCTION, splitBuf);
 		}
 
 		super.save();
